@@ -25,13 +25,13 @@
         }
       }
       const pass = document.getElementId("Pass");
-      const path = "192.168.1.3:80";
+      const path = "192.168.1.4:80/";
       const Make_body = () => {
         const body = pass.value;
         post(path, pass.value);
         if (post == 0) console.log(pass.value);
       }
     </script>
+  </form>
 </body>
-</form>
 </html>
