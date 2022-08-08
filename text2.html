@@ -5,48 +5,12 @@
   <title>ロック管理</title>
 </head>
 <body>
+  <form action = "" method = "post" >
     <input type="button" value="ロック状態を確認する" id="Conf" oncick=check(this.id);><br>
     <input type="button" value="鍵をかける" id="Lock" oncick=lock(this.id);><br>
-    <input type="button" value="鍵を開ける" id="Release" oncick=release(this.id);>
+    <input type="button" value="鍵を開ける" id="unLock" oncick=unlock(this.id);>
     <script>
-        const post = (path, body) => {
-            const request = new XMLHttpRequest();
-            request.open('POST', path, false);
-            request.setRequestHeader("Content-Type", "text/plain");
-            request.send(body);
-            if (request.status === 200) {
-              alert('リクエストに成功しました');
-              return JSON.parse(request.responseText);
-            } else {
-              alert('リクエストに失敗しました');
-              return 0;
-            }
-        }
-        const check = () =>
-        {
-            const pass = document.getElementId("Conf");
-            const path = "192.168.1.3:80/confirm";
-            const body = "";
-            post(path, body);
-            if (post == 0) console.log(pass.value);
 
-        }
-        const lock= () => 
-        {
-            const pass = document.getElementId("Lock");
-            const path = "192.168.1.3:80/lock";
-            const body = pass.value;
-            post(path, body);
-            if (post == 0) console.log(pass.value);
-        }
-        const  release = () => 
-        {
-            const pass = document.getElementId("Release");
-            const path = "192.168.1.3:80/release";
-            const body = "";
-            post(path, body);
-            if (post == 0) console.log(pass.value);
-        }
     </script>
 </body>
 </html>

@@ -1,65 +1,70 @@
 #include <WiFi.h>
 #include <WebServer.h>
 
+
 const char* ssid     = "rx600m-bf5de4-1";
 const char* password = "2fc8ecf29924b";
-
 const int LED=5;
-bool flg=HIGH;
 
 WebServer server(80);
-char *html;
-
-void create_HTML()
-{
-  String s = "";
-  s += "<!DOCTYPE html>\n<html lang \"ja\">\n<head>\n<meta charset = \"utf-8\"><meta charset=\"utf-8\">\n  <title>オートロック管理システム</title>\n</head>\n\n<body>\n  <form action=\"#\" method=\"post\">\n    パスワード：<br>\n    <input type=\"text\" name=\"password\" id=\"Pass\">\n    <input type=\"button\" value=\"確認する\" id=\"Conf\" oncick=Make_body(this.id);></p>\n    <script>\n      const post = (path, body) => {\n        const request = new \nMLHttpRequest();\n        request.open(\'POST\', path, false);\n        request.setRequestHeader(\"Content-Type\", \"text/plain\");\n        request.send(body);\n        if (request.status === 200) {\n          alert(\'リクエストに成功しました\');\n          return JSON.parse(request.responseText);\n        } else {\n          alert(\'リクエストに失敗しました\');\n          return 0;\n        }\n      }\n      const pass = document.getElementId(\"Pass\");\n      const path = \"192.168.1.3:80\";\n      const Make_body = () => {\n        const body = pass.value;\n        post(path, pass.value);\n        if (post == 0) console.log(pass.value);\n      }\n    </script>\n</body>\n</form>\n</html>";
-  s.toCharArray(html,s.length());
-}
+String html;
+bool locked = false;
+String  key = "NEKOhakeny";
 
 void mainPage() 
 {
   Serial.println("mainPage on");
-  create_HTML();
-  \\server.send(200,"text/html",html);
-  server.send(200,"text/plain","This is main page");
+  html = "<!DOCTYPE html>\n<html lang \"ja\">\n<head>\n<meta charset = \"utf-8\"><meta charset=\"utf-8\">\n  <title>オートロック管理システム</title>\n</head>\n\n<body>\n  <form action=\"http://192.168.1.4/confirm\" method=\"post\" enctype = \"text/plain\">\n    パスワード：<br>\n    <input type=\"text\" name=\"password\">\n    <input type=\"submit\" value = \"確認する\">\n  </form>\n</body>\n</html>";
+  server.send(200,"text/html",html);
+  
+}
+void mainPage_2()
+{
+  Serial.println("main_page2 on");
+  String form = server.arg("plain");
+  Serial.println(form);
+  form.replace("password=","");
+  Serial.println(form);
+  if(!form.equals(key))
+  {
+    server.send(200,"text/plain","ThIs password is wrong.");
+    mainPage();
+    return;
+  }
+  
+  html = "\n<html lang \"ja\">\n<head>\n<meta charset=\"utf-8\">\n  <title>ロック管理</title>\n</head>\n<body>\n  <p>\n";
+  html += sendState();
+  html += "</p>\n  <form action = \"http://192.168.1.4/lock\" method = \"post\">\n    <input type=\"submit\" value=\"鍵をかける\" id=\"Lock\" oncick=lock(this.id);><br>\n  </form>\n  <form action = \"http://192.168.1.4/unlock\" method = \"post\">\n    <input type=\"submit\" value=\"鍵を開ける\" id=\"unLock\" oncick=unlock(this.id);>\n  </form>\n    <script>\n\n    </script>\n</body>\n</html>\n";
+  server.send(200,"text/html",html);
+}
+String sendState()
+{
+  if(locked)
+  {
+    return "鍵はロックされています";
+  }
+  else
+  {
+    return "鍵はロックされていません";
+  }
 }
 
-void sendState() 
+void lock()
 {
-  if(server.method()!=HTTP_GET)
-  {
-    server.send(404,"text/plain","ng");
-  }
-  Serial.println("state start");
-  //server.send(200, "application/json", "{\"state\":\""+String(flg?"ON":"OFF")+"\"}");
+  Serial.println("lockpage accessed");
+  if(locked)return ;
+  //
+  locked = true;
+  mainPage_2();  
 }
-void getChange()
+void unlock()
 {
-  String mes;
-  if(server.method()!=HTTP_POST)
-  {
-    Serial.println("cant this method");
-    server.send(404,"text/plain","ng");
-  }
-   Serial.println("getChange start");
-  /*mes=server.arg("plain");
-  if(mes=="on"){
-    flg=HIGH;
-    Serial.println("ON!");
-  }else if(mes=="off"){
-    flg=LOW;
-    Serial.println("OFF!");
-  }else{
-    Serial.print(mes);
-    Serial.println("is not found");
-    server.send(404,"text/plain","ng");
-  }
-  digitalWrite(LED,flg);
-  server.send(200, "text/plain", "ok");
-  */
+  Serial.println("unLockpage accessed");
+  if(!locked)return ;
+  //
+  locked = false;
+  mainPage_2();
 }
-
 void setup(void) 
 {
   pinMode(LED,OUTPUT);
@@ -78,8 +83,9 @@ void setup(void)
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   server.on("/", mainPage);
-  server.on("/state",sendState);
-  server.on("/change",getChange);
+  server.on("/confirm",mainPage_2);
+  server.on("/lock",lock);
+  server.on("/unlock",unlock);
   server.begin();
 }
 

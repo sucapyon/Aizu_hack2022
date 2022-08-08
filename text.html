@@ -6,32 +6,10 @@
 </head>
 
 <body>
-  <form action="#" method="post">
+  <form action="http://192.168.1.4" method="post">
     パスワード：<br>
-    <input type="text" name="password" id="Pass">
-    <input type="button" value="確認する" id="Conf" oncick=Make_body(this.id);></p>
-    <script>
-      const post = (path, body) => {
-        const request = new XMLHttpRequest();
-        request.open('POST', path, false);
-        request.setRequestHeader("Content-Type", "text/plain");
-        request.send(body);
-        if (request.status === 200) {
-          alert('リクエストに成功しました');
-          return JSON.parse(request.responseText);
-        } else {
-          alert('リクエストに失敗しました');
-          return 0;
-        }
-      }
-      const pass = document.getElementId("Pass");
-      const path = "192.168.1.4:80/";
-      const Make_body = () => {
-        const body = pass.value;
-        post(path, pass.value);
-        if (post == 0) console.log(pass.value);
-      }
-    </script>
+    <input type="text" name="password">
+    <input type="submit" value = "確認する">
   </form>
 </body>
 </html>
