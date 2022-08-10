@@ -5,10 +5,13 @@
   <title>ロック管理</title>
 </head>
 <body>
-  <form action = "" method = "post" >
-    <input type="button" value="ロック状態を確認する" id="Conf" oncick=check(this.id);><br>
-    <input type="button" value="鍵をかける" id="Lock" oncick=lock(this.id);><br>
-    <input type="button" value="鍵を開ける" id="unLock" oncick=unlock(this.id);>
+  <p></p>
+  <form action = "http://192.168.1.4/lock" method = "post">
+    <input type="submit" value="鍵をかける" id="Lock" oncick=lock(this.id);><br>
+  </form>
+  <form action = "http://192.168.1.4/unlock" method = "post">
+    <input type="submit" value="鍵を開ける" id="unLock" oncick=unlock(this.id);>
+  </form>
     <script>
 
     </script>
