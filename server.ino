@@ -8,10 +8,12 @@ const int LED=5;
 Servo myservo;
 WebServer server(80);
 long previousMillis = 0;
-long interval = 1000;
+long interval = 10000;
 String html;
 bool locked = false;
 String  key = "NEKOhakeny";
+
+//最初にアクセスするページ
 void mainPage() 
 {
   Serial.println("mainPage on");
@@ -20,6 +22,7 @@ void mainPage()
   
   
 }
+//パスワード認証後、鍵やぱスワードの処理
 void mainPage_2()
 {
   String form = server.arg("plain");
@@ -40,6 +43,8 @@ void mainPage_2()
   html += "<br>\n      <form action = '/change' method = 'post' enctype = 'text/plain'>\n <input type='submit' value='パスワード変更' id='unLock' oncick=unlock(this.id);>\n  </form>";
   server.send(200,"text/html",html);
 }
+
+//鍵が空いてるかどうか
 String sendState()
 {
   if(locked)
@@ -51,6 +56,10 @@ String sendState()
     return "鍵はロックされていません";
   }
 }
+
+
+
+//パスワードの変更
 void change_password()
 {
   html ="<!DOCTYPE html>\n<html lang 'ja'>\n\n<head>\n  <meta charset='utf-8'>\n <title>オートロック管理システム</title>\n</head>\n\n<body>\n";
@@ -63,6 +72,10 @@ void change_password()
   key = new_key;
 }
 
+
+
+
+//鍵を閉める
 void lock()
 {
   Serial.println("lockpage accessed");
@@ -71,6 +84,7 @@ void lock()
    mainPage_2();
   
 }
+//鍵を開ける
 void unlock()
 {
   Serial.println("unLockpage accessed");
@@ -81,7 +95,7 @@ void unlock()
   
   
 }
-
+//一定時間経ったら勝手に閉まる
 void auto_lock()
 {
   unsigned long currentMillis = millis();
@@ -93,6 +107,10 @@ void auto_lock()
     previousMillis = currentMillis;
   }
 }
+
+
+
+
 
 void setup(void) 
 {
@@ -122,5 +140,5 @@ void setup(void)
 void loop(void) 
 {
   server.handleClient();
-  auto_lock();
+  auto_lock();//こいつが鍵が空いてるかどうか常に確認してくれる
 }
