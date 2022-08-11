@@ -1,17 +1,17 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Servo.h>
-#include "BluetoothSerial.h"
 
-const char* ID     = "rx600m-bf5de4-1";
-const char* PASS = "2fc8ecf29924";
-BluetoothSerial SerialBT;
+const char* ssid     = "Xiaomi 11T Pro";
+const char* password = "NEKOhaken0078";
 const int LED=5;
 Servo myservo;
 WebServer server(80);
+long previousMillis = 0;
+long interval = 1000;
 String html;
 bool locked = false;
-
+String  key = "NEKOhakeny";
 
 void mainPage() 
 {
@@ -26,7 +26,8 @@ void mainPage_2()
   String form = server.arg("plain");
   Serial.println(form);
   form.replace("password=","");
-  Serial.println(form);
+  String changed = form;
+  Serial.println(changed);
   if(changed.indexOf("NEKOhakeny")==-1)
   {
     server.send(200,"text/plain","ThIs password is wrong.");
@@ -54,7 +55,7 @@ String sendState()
 void lock()
 {
   Serial.println("lockpage accessed");
-  myservo.write(90);
+  myservo.write(0);
   locked = true;
    mainPage_2();
   
@@ -62,74 +63,52 @@ void lock()
 void unlock()
 {
   Serial.println("unLockpage accessed");
-  myservo.write(0);
+  myservo.write(90);
   locked = false;
   mainPage_2();
-}
-bool new_connect()
-{ 
-  SerialBT.begin("esp32-demo");
-  int challenge = 0;
-  while(1)
-  {
-    char *new_ssid;
-    char *new_pass;
-    if(SerialBT.available())
-    {
-      if(challenge > 3)return false;
-      String read_ssid = SerialBT.readStringUntil('\n');
-      String read_pass = SerialBT.readStringUntil('\n');
-      read_ssid.toCharArray(new_ssid,read_ssid.length());
-      read_pass.toCharArray(new_pass,read_pass.length());
-      if(connect(new_ssid,new_pass))return true;
-      challenge++;
-    }
-  }
-  return false;
-}
-bool connect(char *ssid,char *password)
-{
+  previousMillis = millis();
   
+  
+}
+
+void auto_lock()
+{
+  unsigned long currentMillis = millis();
+  if(currentMillis - previousMillis > interval) 
+  {
+    Serial.println("５ふんたちました");
+    if(!locked)myservo.write(0);
+    locked = true;
+    previousMillis = currentMillis;
+  }
+}
+
+void setup(void) 
+{
+  pinMode(LED,OUTPUT);
+  myservo.attach(2); 
+  Serial.begin(115200);
   WiFi.begin(ssid, password);
-  int waiting = 0;
+
   while (WiFi.status() != WL_CONNECTED) 
   {
     delay(500);
     Serial.print(".");
-    waiting++;
-    Serial.println(waiting);
-    if(waiting > 10)
-    {
-      return new_connect();
-    } 
   }
+
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-  return true;
-}
-void super_unlock()
-{
-  delay(1000*60*60*5UL);
-  unlock();
-}
-void setup() 
-{
-  pinMode(LED,OUTPUT);
-  myservo.attach(2); 
-  Serial.begin(115200);
-  if(!connect((char *)ID,(char *)PASS))super_unlock();
-  
   server.on("/", mainPage);
   server.on("/confirm",mainPage_2);
   server.on("/lock",lock);
   server.on("/unlock",unlock);
   server.begin();
 }
-
 void loop(void) 
 {
   server.handleClient();
+  auto_lock();
 }
